@@ -1,108 +1,207 @@
-# ![CI logo](https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png)
-
-## Template Instructions
-
-Welcome,
-
-This is the Code Institute student template for the Heritage Housing project option in Predictive Analytics. We have preinstalled all of the tools you need to get started. It's perfectly ok to use this template as the basis for your project submissions. Click the `Use this template` button above to get started.
-
-You can safely delete the Template Instructions section of this README.md file,  and modify the remaining paragraphs for your own project. Please do read the Template Instructions at least once, though! It contains some important information about the IDE and the extensions we use.
-
-## How to use this repo
-
-1. Use this template to create your GitHub project repo
-
-2. Log into the cloud-based IDE with your GitHub account.
-
-3. On your Dashboard, click on the Create button
-
-4. Paste in the URL you copied from GitHub earlier
-
-5. Click Create
-
-6. Wait for the workspace to open. This can take a few minutes.
-
-7. Open a new terminal and `pip3 install -r requirements.txt`
-
-11. Open the jupyter_notebooks directory and click on the notebook you want to open.
-
-12. Click the kernel button and choose Python Environments.
-
-Note that the kernel says Python 3.8.18 as it inherits from the workspace so it will be Python-3.8.18 as installed by our template. To confirm this you can use `! python --version` in a notebook code cell.
-
-## Cloud IDE Reminders
-
-To log into the Heroku toolbelt CLI:
-
-1. Log in to your Heroku account and go to *Account Settings* in the menu under your avatar.
-2. Scroll down to the *API Key* and click *Reveal*
-3. Copy the key
-4. In your Cloud IDE, from the terminal, run `heroku_config`
-5. Paste in your API key when asked
-
-You can now use the `heroku` CLI program - try running `heroku apps` to confirm it works. This API key is unique and private to you so do not share it. If you accidentally make it public then you can create a new one with *Regenerate API Key*.
+# House Price Prediction Dashboard
 
 ## Dataset Content
 
-* The dataset is sourced from [Kaggle](https://www.kaggle.com/codeinstitute/housing-prices-data). We then created a fictitious user story where predictive analytics can be applied in a real project in the workplace.
-* The dataset has almost 1.5 thousand rows and represents housing records from Ames, Iowa, indicating house profile (Floor Area, Basement, Garage, Kitchen, Lot, Porch, Wood Deck, Year Built) and its respective sale price for houses built between 1872 and 2010.
+* The dataset is sourced from [Kaggle](https://www.kaggle.com/codeinstitute/housing-prices-data). We created a fictitious user story where predictive analytics can be applied in a real project in the workplace.
+* The dataset has almost 1,500 rows and represents housing records from Ames, Iowa. It includes house profiles (e.g., Floor Area, Basement, Garage, Kitchen, Lot, Porch, Wood Deck, Year Built) and their respective sale prices for houses built between 1872 and 2010.
 
-|Variable|Meaning|Units|
-|:----|:----|:----|
-|1stFlrSF|First Floor square feet|334 - 4692|
-|2ndFlrSF|Second-floor square feet|0 - 2065|
-|BedroomAbvGr|Bedrooms above grade (does NOT include basement bedrooms)|0 - 8|
-|BsmtExposure|Refers to walkout or garden level walls|Gd: Good Exposure; Av: Average Exposure; Mn: Minimum Exposure; No: No Exposure; None: No Basement|
-|BsmtFinType1|Rating of basement finished area|GLQ: Good Living Quarters; ALQ: Average Living Quarters; BLQ: Below Average Living Quarters; Rec: Average Rec Room; LwQ: Low Quality; Unf: Unfinshed; None: No Basement|
-|BsmtFinSF1|Type 1 finished square feet|0 - 5644|
-|BsmtUnfSF|Unfinished square feet of basement area|0 - 2336|
-|TotalBsmtSF|Total square feet of basement area|0 - 6110|
-|GarageArea|Size of garage in square feet|0 - 1418|
-|GarageFinish|Interior finish of the garage|Fin: Finished; RFn: Rough Finished; Unf: Unfinished; None: No Garage|
-|GarageYrBlt|Year garage was built|1900 - 2010|
-|GrLivArea|Above grade (ground) living area square feet|334 - 5642|
-|KitchenQual|Kitchen quality|Ex: Excellent; Gd: Good; TA: Typical/Average; Fa: Fair; Po: Poor|
-|LotArea| Lot size in square feet|1300 - 215245|
-|LotFrontage| Linear feet of street connected to property|21 - 313|
-|MasVnrArea|Masonry veneer area in square feet|0 - 1600|
-|EnclosedPorch|Enclosed porch area in square feet|0 - 286|
-|OpenPorchSF|Open porch area in square feet|0 - 547|
-|OverallCond|Rates the overall condition of the house|10: Very Excellent; 9: Excellent; 8: Very Good; 7: Good; 6: Above Average; 5: Average; 4: Below Average; 3: Fair; 2: Poor; 1: Very Poor|
-|OverallQual|Rates the overall material and finish of the house|10: Very Excellent; 9: Excellent; 8: Very Good; 7: Good; 6: Above Average; 5: Average; 4: Below Average; 3: Fair; 2: Poor; 1: Very Poor|
-|WoodDeckSF|Wood deck area in square feet|0 - 736|
-|YearBuilt|Original construction date|1872 - 2010|
-|YearRemodAdd|Remodel date (same as construction date if no remodelling or additions)|1950 - 2010|
-|SalePrice|Sale Price|34900 - 755000|
+| Variable          | Meaning                                                   | Units                                                                                                                                                                                                                                                                     |
+|-------------------|-----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *1stFlrSF*      | First Floor square feet                                   | 334 - 4,692                                                                                                                                                                                                                                                              |
+| *2ndFlrSF*      | Second-floor square feet                                  | 0 - 2,065                                                                                                                                                                                                                                                                |
+| *BedroomAbvGr*  | Bedrooms above grade (does NOT include basement bedrooms) | 0 - 8                                                                                                                                                                                                                                                                     |
+| *BsmtExposure*  | Refers to walkout or garden level walls                   | Gd: Good Exposure; Av: Average Exposure; Mn: Minimum Exposure; No: No Exposure; None: No Basement                                                                                                                                                                         |
+| *BsmtFinType1*  | Rating of basement finished area                          | GLQ: Good Living Quarters; ALQ: Average Living Quarters; BLQ: Below Average Living Quarters; Rec: Average Rec Room; LwQ: Low Quality; Unf: Unfinished; None: No Basement                                                                                                  |
+| *BsmtFinSF1*    | Type 1 finished square feet                               | 0 - 5,644                                                                                                                                                                                                                                                                 |
+| *BsmtUnfSF*     | Unfinished square feet of basement area                   | 0 - 2,336                                                                                                                                                                                                                                                                 |
+| *TotalBsmtSF*   | Total square feet of basement area                        | 0 - 6,110                                                                                                                                                                                                                                                                 |
+| *GarageArea*    | Size of garage in square feet                             | 0 - 1,418                                                                                                                                                                                                                                                                 |
+| *GarageFinish*  | Interior finish of the garage                             | Fin: Finished; RFn: Rough Finished; Unf: Unfinished; None: No Garage                                                                                                                                                                                                      |
+| *GarageYrBlt*   | Year garage was built                                     | 1900 - 2010                                                                                                                                                                                                                                                               |
+| *GrLivArea*     | Above grade (ground) living area square feet              | 334 - 5,642                                                                                                                                                                                                                                                               |
+| *KitchenQual*   | Kitchen quality                                           | Ex: Excellent; Gd: Good; TA: Typical/Average; Fa: Fair; Po: Poor                                                                                                                                                                                                          |
+| *LotArea*       | Lot size in square feet                                   | 1,300 - 215,245                                                                                                                                                                                                                                                           |
+| *LotFrontage*   | Linear feet of street connected to property               | 21 - 313                                                                                                                                                                                                                                                                  |
+| *MasVnrArea*    | Masonry veneer area in square feet                        | 0 - 1,600                                                                                                                                                                                                                                                                 |
+| *EnclosedPorch* | Enclosed porch area in square feet                        | 0 - 286                                                                                                                                                                                                                                                                   |
+| *OpenPorchSF*   | Open porch area in square feet                            | 0 - 547                                                                                                                                                                                                                                                                   |
+| *OverallCond*   | Rates the overall condition of the house                  | 10: Very Excellent; 9: Excellent; 8: Very Good; 7: Good; 6: Above Average; 5: Average; 4: Below Average; 3: Fair; 2: Poor; 1: Very Poor                                                                                                                                   |
+| *OverallQual*   | Rates the overall material and finish of the house        | 10: Very Excellent; 9: Excellent; 8: Very Good; 7: Good; 6: Above Average; 5: Average; 4: Below Average; 3: Fair; 2: Poor; 1: Very Poor                                                                                                                                   |
+| *WoodDeckSF*    | Wood deck area in square feet                             | 0 - 736                                                                                                                                                                                                                                                                   |
+| *YearBuilt*     | Original construction date                                | 1872 - 2010                                                                                                                                                                                                                                                               |
+| *YearRemodAdd*  | Remodel date (same as construction date if no remodeling or additions) | 1950 - 2010                                                                                                                                                                                                                                                    |
+| *SalePrice*     | Sale Price                                                | \$34,900 - \$755,000                                                                                                                                                                                                                                                      |
 
 ## Business Requirements
 
-As a good friend, you are requested by your friend, who has received an inheritance from a deceased great-grandfather located in Ames, Iowa, to  help in maximising the sales price for the inherited properties.
+As a good friend, you are requested by your friend, *Lydia Doe*, who has received an inheritance from a deceased great-grandfather located in Ames, Iowa, to help in maximizing the sales price for the inherited properties.
 
-Although your friend has an excellent understanding of property prices in her own state and residential area, she fears that basing her estimates for property worth on her current knowledge might lead to inaccurate appraisals. What makes a house desirable and valuable where she comes from might not be the same in Ames, Iowa. She found a public dataset with house prices for Ames, Iowa, and will provide you with that.
+Although Lydia has an excellent understanding of property prices in her own state and residential area, she fears that basing her estimates for property worth on her current knowledge might lead to inaccurate appraisals. What makes a house desirable and valuable where she comes from might not be the same in Ames, Iowa. She found a public dataset with house prices for Ames, Iowa, and has provided you with that.
 
-* 1 - The client is interested in discovering how the house attributes correlate with the sale price. Therefore, the client expects data visualisations of the correlated variables against the sale price to show that.
-* 2 - The client is interested in predicting the house sale price from her four inherited houses and any other house in Ames, Iowa.
+*Business Requirements:*
 
-## Hypothesis and how to validate?
+1. *Discover Correlations:*
+   - The client is interested in discovering how the house attributes correlate with the sale price.
+   - She expects data visualizations of the correlated variables against the sale price to illustrate these relationships.
 
-* List here your project hypothesis(es) and how you envision validating it (them).
+2. *Predict House Sale Prices:*
+   - The client is interested in predicting the house sale price for her four inherited houses.
+   - She also wants the ability to predict the sale price for any other house in Ames, Iowa.
 
-## The rationale to map the business requirements to the Data Visualisations and ML tasks
+## Hypothesis and How to Validate
 
-* List your business requirements and a rationale to map them to the Data Visualisations and ML tasks.
+### Hypothesis 1
+
+*Higher overall quality of the house (OverallQual) leads to a higher sale price.*
+
+*Validation Plan:*
+
+- Calculate the correlation coefficient between OverallQual and SalePrice.
+- Create scatter plots and box plots to visualize the relationship.
+- Analyze the strength and significance of the correlation.
+
+### Hypothesis 2
+
+*Larger living areas (GrLivArea) result in higher sale prices.*
+
+*Validation Plan:*
+
+- Compute the correlation between GrLivArea and SalePrice.
+- Plot GrLivArea against SalePrice using scatter plots.
+- Examine any outliers or anomalies that may affect the relationship.
+
+### Hypothesis 3
+
+*Houses that have been recently remodeled (YearRemodAdd) have higher sale prices.*
+
+*Validation Plan:*
+
+- Assess the correlation between YearRemodAdd and SalePrice.
+- Use line plots to visualize average sale prices over remodel years.
+- Determine if newer remodel years correspond to higher prices.
+
+## The Rationale to Map the Business Requirements to the Data Visualizations and ML Tasks
+
+### Business Requirement 1
+
+*Data Visualization Tasks:*
+
+- Perform exploratory data analysis (EDA) to identify key features that correlate with SalePrice.
+- Use correlation matrices and heatmaps to present the strength of relationships.
+- Generate scatter plots, box plots, and line plots to visually explore the correlations.
+- These visualizations will help Lydia understand which attributes most significantly affect house prices in Ames, Iowa.
+
+### Business Requirement 2
+
+*Machine Learning Tasks:*
+
+- Develop regression models to predict SalePrice based on house attributes.
+- Use the historical dataset to train models such as Linear Regression, Random Forest, and XGBoost.
+- Evaluate models using performance metrics (e.g., MAE, RMSE, R² Score) to select the best-performing model.
+- Apply the model to predict sale prices for Lydia's four inherited houses.
+- Provide a user interface (dashboard) where Lydia can input attributes of any house in Ames, Iowa, and get a predicted sale price.
 
 ## ML Business Case
 
-* In the previous bullet, you potentially visualised an ML task to answer a business requirement. You should frame the business case using the method we covered in the course.
+### Problem Statement
+
+Lydia needs an accurate and reliable method to estimate the sale prices of her inherited houses in Ames, Iowa, to maximize her profits and make informed decisions for future property investments.
+
+### Proposed Solution
+
+Build a predictive regression model using historical house sale data from Ames, Iowa, to estimate the sale prices based on various house attributes.
+
+### Expected Benefits
+
+- *Accurate Pricing:* Helps Lydia avoid underpricing or overpricing her properties.
+- *Strategic Decision-Making:* Understanding key factors affecting house prices assists in making informed decisions.
+- *Future Investments:* The predictive model can be used for any house in Ames, Iowa, aiding future investment considerations.
+
+### Performance Goal
+
+Achieve an *R² score of at least 0.75* on both the training and test sets to ensure the model's reliability.
+
+### Model Inputs and Outputs
+
+- *Inputs:* House attributes such as OverallQual, GrLivArea, YearBuilt, TotalBsmtSF, etc.
+- *Output:* Predicted sale price of the house.
 
 ## Dashboard Design
 
-* List all dashboard pages and their content, either blocks of information or widgets, like buttons, checkboxes, images, or any other items that your dashboard library supports.
-* Eventually, during the project development, you may revisit your dashboard plan to update a given feature (for example, at the beginning of the project you were confident you would use a given plot to display an insight but eventually you needed to use another plot type)
+The dashboard will be built using *Streamlit* and will include the following pages:
+
+### Project Summary Page
+
+*Content:*
+
+- Introduction to the project and its objectives.
+- Overview of the datasets used.
+- Summary of Lydia's business requirements.
+
+*Widgets/Elements:*
+
+- Text blocks with project description.
+- Images or icons representing key aspects.
+
+### Feature Correlations Page
+
+*Content:*
+
+- Visualizations showing how house attributes correlate with sale price.
+- Insights from the data analysis.
+
+*Widgets/Elements:*
+
+- Heatmaps of correlation matrices.
+- Scatter plots of top correlated features.
+- Interactive elements to select features for visualization.
+
+### House Price Predictions Page
+
+*Content:*
+
+- Display of predicted sale prices for the four inherited houses.
+- Total predicted sale price for all inherited properties.
+- Real-time prediction tool for any house in Ames, Iowa.
+
+*Widgets/Elements:*
+
+- Tables showing predictions for inherited houses.
+- Input forms with sliders, number inputs, and dropdowns for user inputs.
+- Button to trigger prediction.
+- Display of predicted sale price based on user input.
+
+### Project Hypotheses Page
+
+*Content:*
+
+- Listing of project hypotheses.
+- Explanation of validation methods and results.
+- Visualizations supporting the hypotheses.
+
+*Widgets/Elements:*
+
+- Text blocks explaining hypotheses and findings.
+- Plots and charts demonstrating validation.
+
+### Model Performance Page
+
+*Content:*
+
+- Presentation of model evaluation metrics.
+- Comparison of different models tested.
+- Explanation of the machine learning pipeline.
+
+*Widgets/Elements:*
+
+- Tables showing performance metrics (MAE, RMSE, R² Score).
+- Graphs of actual vs. predicted prices.
+- Residual plots.
+- Text blocks outlining pipeline steps.
 
 ## Unfixed Bugs
 
-* You will need to mention unfixed bugs and why they were not fixed. This section should include shortcomings of the frameworks or technologies used. Although time can be a big variable to consider, paucity of time and difficulty understanding implementation is not valid reason to leave bugs unfixed.
+At the time of deployment, there are *no known unfixed bugs*. All features and functionalities have been thoroughly tested and are working as expected.
 
 ## Deployment
 
@@ -119,28 +218,18 @@ Although your friend has an excellent understanding of property prices in her ow
 5. The deployment process should happen smoothly if all deployment files are fully functional. Click the button Open App on the top of the page to access your App.
 6. If the slug size is too large then add large files not required for the app to the .slugignore file.
 
-## Main Data Analysis and Machine Learning Libraries
-
-* Here you should list the libraries you used in the project and provide example(s) of how you used these libraries.
-
 ## Credits
 
-* In this section, you need to reference where you got your content, media and extra help from. It is common practice to use code from other repositories and tutorials, however, it is important to be very specific about these sources to avoid plagiarism.
-* You can break the credits section up into Content and Media, depending on what you have included in your project.
+Dataset:
 
-### Content
+- The dataset was sourced from the Kaggle House Prices: Advanced Regression Techniques competition.
 
-* The text for the Home page was taken from Wikipedia Article A
-* Instructions on how to implement form validation on the Sign-Up page was taken from [Specific YouTube Tutorial](https://www.youtube.com/)
-* The icons in the footer were taken from [Font Awesome](https://fontawesome.com/)
+Code References:
 
-### Media
+- Scikit-learn documentation for model implementation and preprocessing techniques.
+- Streamlit documentation and tutorials for dashboard development.
+- Seaborn and Matplotlib documentation for data visualization.
 
-* The photos used on the home and sign-up page are from This Open Source site
-* The images used for the gallery page were taken from this other open-source site
+## Acknowledgements
 
-## Acknowledgements (optional)
-
-
-* In case you would like to thank the people that provided support through this project.
-
+  - This project was developed John Furlong, I used the above documentation along with the knowledge I have gained from the course combined with prompting ChatGPT to improve my understanding on the subject. 
