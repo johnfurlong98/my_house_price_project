@@ -50,13 +50,13 @@ def load_models():
     
     models = {}
     model_files = {
-        'Linear Regression': 'linear_regression_model.joblib',
-        'Ridge Regression': 'ridge_regression_model.joblib',
-        'ElasticNet': 'elasticnet_model.joblib',
-        'Lasso Regression': 'lasso_regression_model.joblib',
-        'Gradient Boosting': 'gradient_boosting_model.joblib',
-        'Random Forest': 'random_forest_model.joblib',
-        'XGBoost': 'xgboost_model.joblib'
+        'Linear Regression': 'streamlitdashboard/jupyter_notebooks/models/linear_regression_model.joblib',
+        'Ridge Regression': 'streamlitdashboard/jupyter_notebooks/models/ridge_regression_model.joblib',
+        'ElasticNet': 'streamlitdashboard/jupyter_notebooks/models/elasticnet_model.joblib',
+        'Lasso Regression': 'streamlitdashboard/jupyter_notebooks/models/lasso_regression_model.joblib',
+        'Gradient Boosting': 'streamlitdashboard/jupyter_notebooks/models/gradient_boosting_model.joblib',
+        'Random Forest': 'streamlitdashboard/jupyter_notebooks/models/random_forest_model.joblib',
+        'XGBoost': 'streamlitdashboard/jupyter_notebooks/models/xgboost_model.joblib'
     }
     
     for name, filename in model_files.items():
