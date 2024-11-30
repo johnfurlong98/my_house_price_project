@@ -7,7 +7,7 @@ cachetools==5.5.0
 click==7.1.2
 cloudpickle==3.1.0
 cycler==0.12.1
-dacite==1.8.1
+dacite==1.8.0
 entrypoints==0.4
 feature-engine==1.0.2
 gitdb==4.0.11
