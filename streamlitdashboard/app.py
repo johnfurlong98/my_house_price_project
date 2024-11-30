@@ -18,7 +18,6 @@ st.set_page_config(
 )
 
 # Load models and data
-@st.cache_data
 def load_data():
     data = pd.read_csv('/workspace/milestone-project-heritage-housing-issues/data/house_prices_records.csv')
     inherited_houses = pd.read_csv('/workspace/milestone-project-heritage-housing-issues/data/inherited_houses.csv')
