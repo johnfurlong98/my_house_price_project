@@ -1,3 +1,5 @@
+# app.py
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -8,9 +10,6 @@ import seaborn as sns
 from scipy.stats import boxcox
 import pickle
 
-# Get the directory where the script is located
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 # Set up page configuration with custom theme
 st.set_page_config(
     page_title="House Price Prediction Dashboard",
@@ -20,15 +19,13 @@ st.set_page_config(
 
 # Load models and data
 def load_data():
-    data_path = os.path.join(BASE_DIR, '..', 'data', 'house_prices_records.csv')
-    inherited_houses_path = os.path.join(BASE_DIR, '..', 'data', 'inherited_houses.csv')
-    data = pd.read_csv(data_path)
-    inherited_houses = pd.read_csv(inherited_houses_path)
+    data = pd.read_csv('/workspace/milestone-project-heritage-housing-issues/data/house_prices_records.csv')
+    inherited_houses = pd.read_csv('/workspace/milestone-project-heritage-housing-issues/data/inherited_houses.csv')
     return data, inherited_houses
 
 def load_models():
-    models_dir = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models')
     models = {}
+    models_dir = '/workspace/milestone-project-heritage-housing-issues/jupyter_notebooks/models'
     # Load all models
     model_files = {
         'Linear Regression': 'linear_regression_model.joblib',
@@ -40,8 +37,7 @@ def load_models():
         'XGBoost': 'xgboost_model.joblib'
     }
     for name, filename in model_files.items():
-        model_path = os.path.join(models_dir, filename)
-        models[name] = joblib.load(model_path)
+        models[name] = joblib.load(os.path.join(models_dir, filename))
 
     scaler = joblib.load(os.path.join(models_dir, 'scaler.joblib'))
     selected_features = pickle.load(open(os.path.join(models_dir, 'selected_features.pkl'), 'rb'))
@@ -569,7 +565,7 @@ with tab3:
                                 input_data[feature] = st.selectbox(
                                     label,
                                     options=details['options'],
-                                    index=0,
+                                    index=details.get('index', 0),
                                     help=help_text
                                 )
                         idx += 1  # Increment idx to switch columns
@@ -646,8 +642,7 @@ with tab4:
 with tab5:
     st.title("Model Performance")
     st.header("Performance Metrics")
-    results_df_path = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models', 'model_evaluation.csv')
-    results_df = pd.read_csv(results_df_path)
+    results_df = pd.read_csv('/workspace/milestone-project-heritage-housing-issues/jupyter_notebooks/models/model_evaluation.csv')
     st.dataframe(results_df.style.format({'MAE': '{:,.2f}', 'RMSE': '{:,.2f}', 'R² Score': '{:.4f}'}))
 
     # Determine best model
@@ -715,6 +710,7 @@ with tab5:
       - Developed using Streamlit for real-time interaction.
       - Allows users to input house features and obtain immediate sale price predictions.
       - Provides visualizations and insights into model performance and data relationships.
+
     """)
 
     st.header("Feature Importances")
@@ -732,8 +728,7 @@ with tab5:
 
     st.header("Actual vs Predicted Prices")
     selected_model = models[best_model_name]
-    train_test_data_path = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models', 'train_test_data.joblib')
-    X_train, X_test, y_train, y_test = joblib.load(train_test_data_path)
+    X_train, X_test, y_train, y_test = joblib.load('/workspace/milestone-project-heritage-housing-issues/jupyter_notebooks/models/train_test_data.joblib')
     y_pred_log = selected_model.predict(X_test)
     y_pred_actual = np.expm1(y_pred_log)
     y_pred_actual[y_pred_actual < 0] = 0  # Handle negative predictions
