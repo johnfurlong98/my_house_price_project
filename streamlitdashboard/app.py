@@ -7,56 +7,29 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import boxcox
 import pickle
-from yellowbrick.regressor import ResidualsPlot
 
-# ===========================
-# 1. Setup and Configuration
-# ===========================
+# Get the directory where the script is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Set up page configuration with a custom theme
+# Set up page configuration with custom theme
 st.set_page_config(
     page_title="House Price Prediction Dashboard",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ===========================
-# 2. Load Data and Models
-# ===========================
-
+# Load models and data
 def load_data():
-    """
-    Loads the house prices records and inherited houses data from CSV files.
-    """
-    data_path = os.path.join('data', 'house_prices_records.csv')
-    inherited_houses_path = os.path.join('data', 'inherited_houses.csv')
-    
-    # Check if data files exist
-    if not os.path.exists(data_path):
-        st.error(f"Data file not found: {data_path}")
-        return None, None
-    if not os.path.exists(inherited_houses_path):
-        st.error(f"Inherited houses file not found: {inherited_houses_path}")
-        return None, None
-    
-    # Load data
+    data_path = os.path.join(BASE_DIR, '..', 'data', 'house_prices_records.csv')
+    inherited_houses_path = os.path.join(BASE_DIR, '..', 'data', 'inherited_houses.csv')
     data = pd.read_csv(data_path)
     inherited_houses = pd.read_csv(inherited_houses_path)
     return data, inherited_houses
 
 def load_models():
-    """
-    Loads machine learning models and related components from joblib and pickle files.
-    """
-    models_dir = os.path.join('models')
-    
-    # Check if models directory exists
-    if not os.path.exists(models_dir):
-        st.error(f"Models directory not found: {models_dir}")
-        return None, None, None, None, None, None
-    
+    models_dir = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models')
     models = {}
-    # Define model filenames
+    # Load all models
     model_files = {
         'Linear Regression': 'linear_regression_model.joblib',
         'Ridge Regression': 'ridge_regression_model.joblib',
@@ -66,110 +39,31 @@ def load_models():
         'Random Forest': 'random_forest_model.joblib',
         'XGBoost': 'xgboost_model.joblib'
     }
-    
-    # Load each model
     for name, filename in model_files.items():
         model_path = os.path.join(models_dir, filename)
-        if not os.path.exists(model_path):
-            st.warning(f"Model file not found: {model_path}. Skipping this model.")
-            continue
-        try:
-            models[name] = joblib.load(model_path)
-        except Exception as e:
-            st.warning(f"Error loading model '{name}': {e}. Skipping this model.")
-    
-    # Load scaler
-    try:
-        scaler = joblib.load(os.path.join(models_dir, 'scaler.joblib'))
-    except Exception as e:
-        st.error(f"Error loading scaler: {e}")
-        scaler = None
-    
-    # Load selected_features
-    try:
-        with open(os.path.join(models_dir, 'selected_features.pkl'), 'rb') as f:
-            selected_features = pickle.load(f)
-    except Exception as e:
-        st.error(f"Error loading 'selected_features.pkl': {e}")
-        selected_features = None
-    
-    # Load skewed_features
-    try:
-        with open(os.path.join(models_dir, 'skewed_features.pkl'), 'rb') as f:
-            skewed_features = pickle.load(f)
-    except Exception as e:
-        st.error(f"Error loading 'skewed_features.pkl': {e}")
-        skewed_features = None
-    
-    # Load lam_dict
-    try:
-        with open(os.path.join(models_dir, 'lam_dict.pkl'), 'rb') as f:
-            lam_dict = pickle.load(f)
-    except Exception as e:
-        st.error(f"Error loading 'lam_dict.pkl': {e}")
-        lam_dict = None
-    
-    # Load feature_importances
-    try:
-        feature_importances = pd.read_csv(os.path.join(models_dir, 'feature_importances.csv'))
-    except Exception as e:
-        st.error(f"Error loading 'feature_importances.csv': {e}")
-        feature_importances = None
-    
+        models[name] = joblib.load(model_path)
+
+    scaler = joblib.load(os.path.join(models_dir, 'scaler.joblib'))
+    selected_features = pickle.load(open(os.path.join(models_dir, 'selected_features.pkl'), 'rb'))
+    skewed_features = pickle.load(open(os.path.join(models_dir, 'skewed_features.pkl'), 'rb'))
+    lam_dict = pickle.load(open(os.path.join(models_dir, 'lam_dict.pkl'), 'rb'))
+    feature_importances = pd.read_csv(os.path.join(models_dir, 'feature_importances.csv'))
     return models, scaler, selected_features, skewed_features, lam_dict, feature_importances
 
 # Load data
 data, inherited_houses = load_data()
 
-# Load models and related components
+# Load models and related data
 models, scaler, selected_features, skewed_features, lam_dict, feature_importances = load_models()
 
-# ===========================
-# 3. Verify Loaded Components
-# ===========================
-
-# Initialize a list to collect missing components
-missing_components = []
-
-if models is None or not models:
-    missing_components.append("models")
-if scaler is None:
-    missing_components.append("scaler")
-if selected_features is None:
-    missing_components.append("selected_features")
-if not skewed_features:
-    missing_components.append("skewed_features")
-if lam_dict is None:
-    missing_components.append("lam_dict")
-if feature_importances is None:
-    missing_components.append("feature_importances")
-
-# If any components are missing, display an error and stop the app
-if missing_components:
-    st.error(f"Missing components: {', '.join(missing_components)}. Please ensure all necessary files are present and correctly loaded.")
-    st.stop()
-
-# ===========================
-# 4. Feature Engineering
-# ===========================
-
+# Define feature engineering function
 def feature_engineering(df):
-    """
-    Creates new features based on existing ones.
-    """
     df['TotalSF'] = df['TotalBsmtSF'] + df['1stFlrSF'] + df['2ndFlrSF']
     df['Qual_TotalSF'] = df['OverallQual'] * df['TotalSF']
     return df
 
-# ===========================
-# 5. Data Preprocessing
-# ===========================
-
+# Define preprocessing function
 def preprocess_data(df):
-    """
-    Preprocesses the input DataFrame by handling missing values, encoding categorical variables,
-    engineering new features, and transforming skewed features.
-    """
     df_processed = df.copy()
     
     # Map full words back to codes
@@ -207,15 +101,15 @@ def preprocess_data(df):
     for col, mapping in user_to_model_mappings.items():
         if col in df_processed.columns:
             df_processed[col] = df_processed[col].map(mapping)
-    
+
     # Handle missing values
     zero_fill_features = ['2ndFlrSF', 'EnclosedPorch', 'MasVnrArea', 'WoodDeckSF',
                           'BsmtFinSF1', 'TotalBsmtSF', '1stFlrSF', 'BsmtUnfSF']
     for feature in zero_fill_features:
         if feature in df_processed.columns:
             df_processed[feature] = df_processed[feature].fillna(0)
-    
-    # Fill categorical features with default values
+
+    # Fill categorical features
     categorical_mode_fill = {
         'BsmtFinType1': 'None',
         'GarageFinish': 'Unf',
@@ -225,14 +119,14 @@ def preprocess_data(df):
     for feature, value in categorical_mode_fill.items():
         if feature in df_processed.columns:
             df_processed[feature] = df_processed[feature].fillna(value)
-    
-    # Fill numerical features with median values from the training data
+
+    # Fill numerical features
     numerical_median_fill = ['BedroomAbvGr', 'GarageYrBlt', 'LotFrontage', 'OverallQual', 'OverallCond', 'YearBuilt', 'YearRemodAdd']
     for feature in numerical_median_fill:
         if feature in df_processed.columns:
             df_processed[feature] = df_processed[feature].fillna(data[feature].median())
-    
-    # Encode categorical features using ordinal encoding
+
+    # Encode categorical features
     ordinal_mappings = {
         'BsmtFinType1': {'None': 0, 'Unf': 1, 'LwQ': 2, 'Rec': 3, 'BLQ': 4, 'ALQ': 5, 'GLQ': 6},
         'KitchenQual': {'Po': 1, 'Fa': 2, 'TA': 3, 'Gd': 4, 'Ex': 5},
@@ -242,10 +136,10 @@ def preprocess_data(df):
     for col, mapping in ordinal_mappings.items():
         if col in df_processed.columns:
             df_processed[col] = df_processed[col].map(mapping)
-    
+
     # Feature engineering
     df_processed = feature_engineering(df_processed)
-    
+
     # Transform skewed features
     for feat in skewed_features:
         if feat in df_processed.columns:
@@ -255,22 +149,18 @@ def preprocess_data(df):
                 lam = lam_dict.get(feat)
                 if lam is not None:
                     try:
-                        df_processed[feat], _ = boxcox(df_processed[feat], lmbda=lam)
+                        df_processed[feat] = boxcox(df_processed[feat], lam)
                     except ValueError:
                         df_processed[feat] = np.log1p(df_processed[feat])
                 else:
                     df_processed[feat] = np.log1p(df_processed[feat])
-    
+
     return df_processed
 
-# Preprocess the training data
+# Preprocess the data
 data = preprocess_data(data)
 
-# ===========================
-# 6. Feature Metadata
-# ===========================
-
-# Metadata for features to provide help texts and labels
+# Metadata for features (from the provided metadata)
 feature_metadata = {
     '1stFlrSF': 'First Floor square feet',
     '2ndFlrSF': 'Second floor square feet',
@@ -298,10 +188,6 @@ feature_metadata = {
     'TotalSF': 'Total square feet of house (including basement)',
     'Qual_TotalSF': 'Product of OverallQual and TotalSF'
 }
-
-# ===========================
-# 7. Define User Input Details
-# ===========================
 
 # Define feature input details for the user input form
 feature_input_details = {
@@ -527,10 +413,7 @@ feature_input_details = {
     },
 }
 
-# ===========================
-# 8. Custom CSS for Enhanced UI (Optional)
-# ===========================
-
+# Apply custom CSS for enhanced UI (optional)
 st.markdown(
     """
     <style>
@@ -552,17 +435,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ===========================
-# 9. Create Navigation Tabs
-# ===========================
-
+# Create tabs for navigation
 tabs = ["Project Summary", "Feature Correlations", "House Price Predictions", "Project Hypotheses", "Model Performance"]
 tab1, tab2, tab3, tab4, tab5 = st.tabs(tabs)
 
-# ===========================
-# 10. Project Summary Page
-# ===========================
-
+# Project Summary Page
 with tab1:
     st.title("House Price Prediction Dashboard")
     st.write("""
@@ -570,23 +447,20 @@ with tab1:
 
     Welcome to the House Price Prediction Dashboard. This project aims to build a predictive model to estimate the sale prices of houses based on various features. By analyzing the data and developing robust models, we provide insights into the key factors that influence house prices.
 
-    **Key Objectives:**
+    *Key Objectives:*
 
-    - **Data Analysis and Preprocessing:** Understand and prepare the data for modeling.
-    - **Feature Engineering:** Create new features to improve model performance.
-    - **Model Development:** Train and evaluate multiple regression models.
-    - **Deployment:** Develop an interactive dashboard for predictions and insights.
+    - *Data Analysis and Preprocessing:* Understand and prepare the data for modeling.
+    - *Feature Engineering:* Create new features to improve model performance.
+    - *Model Development:* Train and evaluate multiple regression models.
+    - *Deployment:* Develop an interactive dashboard for predictions and insights.
 
-    **Instructions:**
+    *Instructions:*
 
     - Use the tabs at the top to navigate between different sections.
     - Explore data correlations, make predictions, and understand the model performance.
     """)
 
-# ===========================
-# 11. Feature Correlations Page
-# ===========================
-
+# Feature Correlations Page
 with tab2:
     st.title("Feature Correlations")
     st.write("""
@@ -619,10 +493,7 @@ with tab2:
     The pairplot displays pairwise relationships between the top correlated features and the sale price. It helps visualize potential linear relationships and distributions.
     """)
 
-# ===========================
-# 12. House Price Predictions Page
-# ===========================
-
+# House Price Predictions Page
 with tab3:
     st.title("House Price Predictions")
 
@@ -633,43 +504,29 @@ with tab3:
     # Preprocess and predict for inherited houses
     inherited_processed = preprocess_data(inherited_houses)
     inherited_scaled = scaler.transform(inherited_processed[selected_features])
-    
-    # Determine the best model based on Model Performance tab
-    # For simplicity, assume XGBoost is the best model
-    best_model_name = 'XGBoost'  # Update this based on your model evaluation
+    best_model_name = 'XGBoost'  # Assuming XGBoost is the best model
+    selected_model = models[best_model_name]
+    predictions_log = selected_model.predict(inherited_scaled)
+    predictions_actual = np.expm1(predictions_log)
+    predictions_actual[predictions_actual < 0] = 0  # Handle negative predictions
 
-    if best_model_name not in models:
-        st.error(f"Best model '{best_model_name}' not found among loaded models.")
-    else:
-        selected_model = models[best_model_name]
-        try:
-            predictions_log = selected_model.predict(inherited_scaled)
-            # If your target variable was log-transformed, you might need to reverse the transformation
-            predictions_actual = np.expm1(predictions_log)  # Assuming log1p was used
-            predictions_actual[predictions_actual < 0] = 0  # Handle negative predictions
+    # Add predictions to the processed DataFrame
+    inherited_processed['Predicted SalePrice'] = predictions_actual
 
-            # Add predictions to the processed DataFrame
-            inherited_processed['Predicted SalePrice'] = predictions_actual
-
-            # Display the DataFrame with the selected features
-            st.dataframe(inherited_processed[['Predicted SalePrice'] + selected_features])
-            total_predicted_price = predictions_actual.sum()
-            st.success(f"The total predicted sale price for all inherited houses is **${total_predicted_price:,.2f}**.")
-        except Exception as e:
-            st.error(f"Error during inherited houses prediction: {e}")
+    # Display the DataFrame with the selected features
+    st.dataframe(inherited_processed[['Predicted SalePrice'] + selected_features])
+    total_predicted_price = predictions_actual.sum()
+    st.success(f"The total predicted sale price for all inherited houses is *${total_predicted_price:,.2f}*.")
 
     # Real-Time Prediction
     st.header("Real-Time House Price Prediction")
     st.write("Input house attributes to predict the sale price using the best-performing model.")
 
     def user_input_features():
-        """
-        Creates a user input form for real-time house price prediction.
-        """
         input_data = {}
         with st.form(key='house_features'):
             st.write("### Enter House Attributes")
-            # Group features into sections for better UI
+            # Group features into sections
             feature_groups = {
                 'General': ['OverallQual', 'OverallCond', 'YearBuilt', 'YearRemodAdd'],
                 'Area': ['GrLivArea', '1stFlrSF', '2ndFlrSF', 'TotalBsmtSF', 'LotArea', 'LotFrontage'],
@@ -729,40 +586,30 @@ with tab3:
 
     user_input = user_input_features()
     if user_input is not None:
-        try:
-            user_processed = preprocess_data(user_input)
-            user_scaled = scaler.transform(user_processed[selected_features])
-            if best_model_name not in models:
-                st.error(f"Best model '{best_model_name}' not found among loaded models.")
-            else:
-                selected_model = models[best_model_name]
-                user_pred_log = selected_model.predict(user_scaled)
-                user_pred_actual = np.expm1(user_pred_log)  # Assuming log1p was used
-                user_pred_actual[user_pred_actual < 0] = 0  # Handle negative predictions
-                st.success(f"The predicted sale price is **${user_pred_actual[0]:,.2f}**.")
-        except Exception as e:
-            st.error(f"Error during real-time prediction: {e}")
+        user_processed = preprocess_data(user_input)
+        user_scaled = scaler.transform(user_processed[selected_features])
+        user_pred_log = selected_model.predict(user_scaled)
+        user_pred_actual = np.expm1(user_pred_log)
+        user_pred_actual[user_pred_actual < 0] = 0  # Handle negative predictions
+        st.success(f"The predicted sale price is *${user_pred_actual[0]:,.2f}*.")
 
-# ===========================
-# 13. Project Hypotheses Page
-# ===========================
-
+# Project Hypotheses Page
 with tab4:
     st.title("Project Hypotheses")
     st.write("""
     ## Hypothesis Validation
 
-    **Hypothesis 1:** Higher overall quality of the house leads to a higher sale price.
+    *Hypothesis 1:* Higher overall quality of the house leads to a higher sale price.
 
-    - **Validation:** The `OverallQual` feature shows a strong positive correlation with the sale price, confirming this hypothesis.
+    - *Validation:* The OverallQual feature shows a strong positive correlation with the sale price, confirming this hypothesis.
 
-    **Hypothesis 2:** Larger living areas result in higher sale prices.
+    *Hypothesis 2:* Larger living areas result in higher sale prices.
 
-    - **Validation:** Features like `GrLivArea` and `TotalSF` have high correlations with the sale price, supporting this hypothesis.
+    - *Validation:* Features like GrLivArea and TotalSF have high correlations with the sale price, supporting this hypothesis.
 
-    **Hypothesis 3:** Recent renovations positively impact the sale price.
+    *Hypothesis 3:* Recent renovations positively impact the sale price.
 
-    - **Validation:** The `YearRemodAdd` feature correlates with the sale price, indicating that more recent remodels can increase the house value.
+    - *Validation:* The YearRemodAdd feature correlates with the sale price, indicating that more recent remodels can increase the house value.
     """)
 
     # Visualization for Hypotheses
@@ -795,36 +642,17 @@ with tab4:
     plt.ylabel('Average Sale Price', fontsize=12)
     st.pyplot(plt)
 
-# ===========================
-# 14. Model Performance Page
-# ===========================
-
+# Model Performance Page
 with tab5:
     st.title("Model Performance")
     st.header("Performance Metrics")
-    results_df_path = os.path.join('models', 'model_evaluation.csv')
-    
-    if not os.path.exists(results_df_path):
-        st.error(f"Model evaluation file not found: {results_df_path}")
-    else:
-        try:
-            results_df = pd.read_csv(results_df_path)
-            st.dataframe(results_df.style.format({'MAE': '{:,.2f}', 'RMSE': '{:,.2f}', 'R² Score': '{:.4f}'}))
-        except Exception as e:
-            st.error(f"Error loading model evaluation data: {e}")
-            results_df = None
+    results_df_path = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models', 'model_evaluation.csv')
+    results_df = pd.read_csv(results_df_path)
+    st.dataframe(results_df.style.format({'MAE': '{:,.2f}', 'RMSE': '{:,.2f}', 'R² Score': '{:.4f}'}))
 
-    if results_df is not None and not results_df.empty:
-        # Determine best model based on RMSE
-        try:
-            best_model_row = results_df.sort_values('RMSE').iloc[0]
-            best_model_name = best_model_row['Model']
-            st.write(f"**Best performing model:** *{best_model_name}* based on RMSE.")
-        except Exception as e:
-            st.error(f"Error determining the best model: {e}")
-            best_model_name = None
-    else:
-        best_model_name = None
+    # Determine best model
+    best_model_name = results_df.sort_values('RMSE').iloc[0]['Model']
+    st.write(f"Best performing model is *{best_model_name}* based on RMSE.")
 
     st.write("""
     The table above presents the performance metrics of various regression models. The best-performing model outperforms others with the lowest MAE and RMSE, and the highest R² Score.
@@ -833,120 +661,105 @@ with tab5:
     st.header("Detailed Pipeline Explanation")
     st.write("""
     ### 1. Data Collection and Understanding
-    - **Datasets Used:**
+    - *Datasets Used:*
       - *Historical House Sale Data:* Contains features and sale prices of houses.
       - *Inherited Houses Data:* Contains features of houses for which sale prices need to be predicted.
-    - **Exploratory Data Analysis (EDA):**
+    - *Exploratory Data Analysis (EDA):*
       - Assessed data shapes, types, and initial statistics.
       - Identified potential relationships and patterns.
 
     ### 2. Data Cleaning
-    - **Handling Missing Values:**
+    - *Handling Missing Values:*
       - *Numerical Features:* Filled missing values with zeros or the median of the feature.
       - *Categorical Features:* Filled missing values with the mode or a default category.
       - *Verification:* Confirmed that no missing values remained after imputation.
 
     ### 3. Feature Engineering
-    - **Categorical Encoding:**
+    - *Categorical Encoding:*
       - Applied ordinal encoding to convert categorical features into numerical values based on domain knowledge.
-    - **Creation of New Features:**
+    - *Creation of New Features:*
       - *TotalSF:* Combined total square footage of the house, including basement and above-ground areas.
       - *Qual_TotalSF:* Product of OverallQual and TotalSF to capture the combined effect of size and quality.
 
     ### 4. Feature Transformation
-    - **Addressing Skewness:**
+    - *Addressing Skewness:*
       - Identified skewed features using skewness metrics.
       - Applied log transformation or Box-Cox transformation to normalize distributions.
 
     ### 5. Feature Selection
-    - **Random Forest Feature Importances:**
+    - *Random Forest Feature Importances:*
       - Trained a Random Forest model to assess feature importances.
       - Selected top features contributing most to the model's predictive power.
 
     ### 6. Data Scaling
-    - **Standardization:**
+    - *Standardization:*
       - Used StandardScaler to standardize features.
       - Ensured that features have a mean of 0 and a standard deviation of 1 for optimal model performance.
 
     ### 7. Model Training
-    - **Algorithms Used:**
+    - *Algorithms Used:*
       - Linear Regression, Ridge Regression, Lasso Regression, ElasticNet, Random Forest, Gradient Boosting, XGBoost.
-    - **Hyperparameter Tuning:**
+    - *Hyperparameter Tuning:*
       - Adjusted parameters using techniques like cross-validation to prevent overfitting and improve generalization.
 
     ### 8. Model Evaluation
-    - **Performance Metrics:**
+    - *Performance Metrics:*
       - *Mean Absolute Error (MAE):* Measures average magnitude of errors.
       - *Root Mean Squared Error (RMSE):* Penalizes larger errors more than MAE.
       - *R² Score:* Indicates the proportion of variance explained by the model.
-    - **Best Model Selection:**
+    - *Best Model Selection:*
       - Selected the model with the lowest RMSE and highest R² Score.
 
     ### 9. Deployment
-    - **Interactive Dashboard:**
+    - *Interactive Dashboard:*
       - Developed using Streamlit for real-time interaction.
       - Allows users to input house features and obtain immediate sale price predictions.
       - Provides visualizations and insights into model performance and data relationships.
     """)
 
     st.header("Feature Importances")
-    if feature_importances is not None and not feature_importances.empty:
-        try:
-            plt.figure(figsize=(12, 8))
-            sns.barplot(x='Importance', y='Feature', data=feature_importances.sort_values(by='Importance', ascending=False))
-            plt.title('Feature Importances from Random Forest', fontsize=16)
-            plt.xlabel('Importance', fontsize=12)
-            plt.ylabel('Feature', fontsize=12)
-            st.pyplot(plt)
+    # Display feature importances from the Random Forest model
+    plt.figure(figsize=(12, 8))
+    sns.barplot(x='Importance', y='Feature', data=feature_importances.sort_values(by='Importance', ascending=False))
+    plt.title('Feature Importances from Random Forest', fontsize=16)
+    plt.xlabel('Importance', fontsize=12)
+    plt.ylabel('Feature', fontsize=12)
+    st.pyplot(plt)
 
-            st.write("""
-            The bar chart above illustrates the relative importance of each feature in predicting the sale price. Features like GrLivArea, TotalSF, and OverallQual are among the most significant.
-            """)
-        except Exception as e:
-            st.error(f"Error plotting feature importances: {e}")
-    else:
-        st.error("Feature importances data is unavailable.")
+    st.write("""
+    The bar chart illustrates the relative importance of each feature in predicting the sale price. Features like GrLivArea, TotalSF, and OverallQual are among the most significant.
+    """)
 
     st.header("Actual vs Predicted Prices")
-    if best_model_name and best_model_name in models:
-        try:
-            selected_model = models[best_model_name]
-            train_test_data_path = os.path.join('models', 'train_test_data.joblib')
-            if not os.path.exists(train_test_data_path):
-                st.error(f"Train-test data file not found: {train_test_data_path}")
-            else:
-                X_train, X_test, y_train, y_test = joblib.load(train_test_data_path)
-                y_pred_log = selected_model.predict(X_test)
-                y_pred_actual = np.expm1(y_pred_log)  # Assuming log1p was used
-                y_pred_actual[y_pred_actual < 0] = 0  # Handle negative predictions
-                y_test_actual = np.expm1(y_test)
-                
-                # Plot Actual vs Predicted
-                plt.figure(figsize=(10, 6))
-                sns.scatterplot(x=y_test_actual, y=y_pred_actual, color='purple')
-                plt.xlabel('Actual Sale Price', fontsize=12)
-                plt.ylabel('Predicted Sale Price', fontsize=12)
-                plt.title('Actual vs Predicted Sale Prices', fontsize=16)
-                plt.plot([y_test_actual.min(), y_test_actual.max()], [y_test_actual.min(), y_test_actual.max()], 'r--')
-                st.pyplot(plt)
+    selected_model = models[best_model_name]
+    train_test_data_path = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models', 'train_test_data.joblib')
+    X_train, X_test, y_train, y_test = joblib.load(train_test_data_path)
+    y_pred_log = selected_model.predict(X_test)
+    y_pred_actual = np.expm1(y_pred_log)
+    y_pred_actual[y_pred_actual < 0] = 0  # Handle negative predictions
+    y_test_actual = np.expm1(y_test)
 
-                st.write("""
-                The scatter plot above compares the actual sale prices with the predicted sale prices. The red dashed line represents perfect predictions. Most points are close to this line, indicating good model performance.
-                """)
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(x=y_test_actual, y=y_pred_actual, color='purple')
+    plt.xlabel('Actual Sale Price', fontsize=12)
+    plt.ylabel('Predicted Sale Price', fontsize=12)
+    plt.title('Actual vs Predicted Sale Prices', fontsize=16)
+    plt.plot([y_test_actual.min(), y_test_actual.max()], [y_test_actual.min(), y_test_actual.max()], 'r--')
+    st.pyplot(plt)
 
-                st.header("Residual Analysis")
-                residuals = y_test_actual - y_pred_actual
-                plt.figure(figsize=(10, 6))
-                sns.histplot(residuals, kde=True, color='coral')
-                plt.title('Residuals Distribution', fontsize=16)
-                plt.xlabel('Residuals', fontsize=12)
-                plt.ylabel('Frequency', fontsize=12)
-                st.pyplot(plt)
+    st.write("""
+    The scatter plot compares the actual sale prices with the predicted sale prices. The red dashed line represents perfect predictions. Most points are close to this line, indicating good model performance.
+    """)
 
-                st.write("""
-                The residuals are centered around zero and approximately normally distributed, suggesting that the model's errors are random and unbiased.
-                """)
-        except Exception as e:
-            st.error(f"Error during model performance analysis: {e}")
-    else:
-        st.error("Best model not found or not loaded.")
+    st.header("Residual Analysis")
+    residuals = y_test_actual - y_pred_actual
+    plt.figure(figsize=(10, 6))
+    sns.histplot(residuals, kde=True, color='coral')
+    plt.title('Residuals Distribution', fontsize=16)
+    plt.xlabel('Residuals', fontsize=12)
+    plt.ylabel('Frequency', fontsize=12)
+    st.pyplot(plt)
+
+    st.write("""
+    The residuals are centered around zero and approximately normally distributed, suggesting that the model's errors are random and unbiased.
+    """)
