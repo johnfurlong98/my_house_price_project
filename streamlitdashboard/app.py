@@ -918,7 +918,7 @@ with tab5:
                 y_pred_actual = np.expm1(y_pred_log)
                 y_pred_actual[y_pred_actual < 0] = 0  # Handle negative predictions
                 y_test_actual = np.expm1(y_test)
-    
+
                 plt.figure(figsize=(10, 6))
                 sns.scatterplot(x=y_test_actual, y=y_pred_actual, color='purple')
                 plt.xlabel('Actual Sale Price', fontsize=12)
@@ -926,11 +926,11 @@ with tab5:
                 plt.title('Actual vs Predicted Sale Prices', fontsize=16)
                 plt.plot([y_test_actual.min(), y_test_actual.max()], [y_test_actual.min(), y_test_actual.max()], 'r--')
                 st.pyplot(plt)
-    
+
                 st.write("""
                 The scatter plot above compares the actual sale prices with the predicted sale prices. The red dashed line represents perfect predictions. Most points are close to this line, indicating good model performance.
                 """)
-    
+
                 st.header("Residual Analysis")
                 residuals = y_test_actual - y_pred_actual
                 plt.figure(figsize=(10, 6))
@@ -939,7 +939,7 @@ with tab5:
                 plt.xlabel('Residuals', fontsize=12)
                 plt.ylabel('Frequency', fontsize=12)
                 st.pyplot(plt)
-    
+
                 st.write("""
                 The residuals are centered around zero and approximately normally distributed, suggesting that the model's errors are random and unbiased.
                 """)
