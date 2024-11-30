@@ -23,7 +23,6 @@ def load_data():
     inherited_houses = pd.read_csv('/workspace/milestone-project-heritage-housing-issues/data/inherited_houses.csv')
     return data, inherited_houses
 
-@st.cache_resource
 def load_models():
     models = {}
     models_dir = '/workspace/milestone-project-heritage-housing-issues/jupyter_notebooks/models'
