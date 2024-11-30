@@ -62,7 +62,11 @@ def load_models():
     for name, filename in model_files.items():
         model_path = models_dir / filename
         check_file_exists(model_path, f"{filename}")
-        models[name] = joblib.load(model_path)
+        try:
+            models[name] = joblib.load(model_path)
+        except Exception as e:
+            st.error(f"**Error loading {filename}:** {e}")
+            st.stop()
 
     # Load scaler and other related objects
     scaler_path = models_dir / 'scaler.joblib'
@@ -81,13 +85,17 @@ def load_models():
     check_file_exists(model_evaluation_path, "model_evaluation.csv")
     check_file_exists(train_test_data_path, "train_test_data.joblib")
     
-    scaler = joblib.load(scaler_path)
-    selected_features = pickle.load(open(selected_features_path, 'rb'))
-    skewed_features = pickle.load(open(skewed_features_path, 'rb'))
-    lam_dict = pickle.load(open(lam_dict_path, 'rb'))
-    feature_importances = pd.read_csv(feature_importances_path)
-    model_evaluation = pd.read_csv(model_evaluation_path)
-    train_test_data = joblib.load(train_test_data_path)
+    try:
+        scaler = joblib.load(scaler_path)
+        selected_features = pickle.load(open(selected_features_path, 'rb'))
+        skewed_features = pickle.load(open(skewed_features_path, 'rb'))
+        lam_dict = pickle.load(open(lam_dict_path, 'rb'))
+        feature_importances = pd.read_csv(feature_importances_path)
+        model_evaluation = pd.read_csv(model_evaluation_path)
+        train_test_data = joblib.load(train_test_data_path)
+    except Exception as e:
+        st.error(f"**Error loading scaler or related objects:** {e}")
+        st.stop()
     
     return models, scaler, selected_features, skewed_features, lam_dict, feature_importances, model_evaluation, train_test_data
 
@@ -577,7 +585,7 @@ with tab3:
                 if missing_cols:
                     st.warning(f"The following columns are missing in the inherited houses data: {missing_cols}")
                     display_columns = [col for col in display_columns if col in inherited_processed.columns]
-                
+
                 st.dataframe(inherited_processed[display_columns])
                 total_predicted_price = predictions_actual.sum()
                 st.success(f"The total predicted sale price for all inherited houses is *${total_predicted_price:,.2f}*.")
@@ -716,71 +724,74 @@ with tab5:
     st.title("Model Performance")
     st.header("Performance Metrics")
     results_df = model_evaluation
-    st.dataframe(results_df.style.format({'MAE': '{:,.2f}', 'RMSE': '{:,.2f}', 'R² Score': '{:.4f}'}))
-
-    # Determine best model based on RMSE
-    if 'RMSE' in results_df.columns and 'Model' in results_df.columns:
-        best_model_row = results_df.loc[results_df['RMSE'].idxmin()]
-        best_model_name = best_model_row['Model']
-        st.write(f"Best performing model is *{best_model_name}* based on RMSE.")
+    if results_df.empty:
+        st.warning("**Warning:** Model evaluation results are empty.")
     else:
-        st.warning("**Warning:** 'RMSE' or 'Model' columns not found in the evaluation results.")
+        st.dataframe(results_df.style.format({'MAE': '{:,.2f}', 'RMSE': '{:,.2f}', 'R² Score': '{:.4f}'}))
 
-    st.write("""
-    The table above presents the performance metrics of various regression models. The best-performing model outperforms others with the lowest MAE and RMSE, and the highest R² Score.
-    """)
+        # Determine best model based on RMSE
+        if 'RMSE' in results_df.columns and 'Model' in results_df.columns:
+            best_model_row = results_df.loc[results_df['RMSE'].idxmin()]
+            best_model_name = best_model_row['Model']
+            st.write(f"Best performing model is *{best_model_name}* based on RMSE.")
+        else:
+            st.warning("**Warning:** 'RMSE' or 'Model' columns not found in the evaluation results.")
 
-    st.header("Detailed Pipeline Explanation")
-    st.write("""
-    ### 1. Data Collection and Understanding
-    - *Datasets Used:*
-      - *Historical House Sale Data:* Contains features and sale prices of houses.
-      - *Inherited Houses Data:* Contains features of houses for which sale prices need to be predicted.
-    - *Exploratory Data Analysis (EDA):*
-      - Assessed data shapes, types, and initial statistics.
-      - Identified potential relationships and patterns.
+        st.write("""
+        The table above presents the performance metrics of various regression models. The best-performing model outperforms others with the lowest MAE and RMSE, and the highest R² Score.
+        """)
 
-    ### 2. Data Cleaning
-    - *Handling Missing Values:*
-      - *Numerical Features:* Filled missing values with zeros or the median of the feature.
-      - *Categorical Features:* Filled missing values with the mode or a default category.
-      - *Verification:* Confirmed that no missing values remained after imputation.
+        st.header("Detailed Pipeline Explanation")
+        st.write("""
+        ### 1. Data Collection and Understanding
+        - *Datasets Used:*
+          - *Historical House Sale Data:* Contains features and sale prices of houses.
+          - *Inherited Houses Data:* Contains features of houses for which sale prices need to be predicted.
+        - *Exploratory Data Analysis (EDA):*
+          - Assessed data shapes, types, and initial statistics.
+          - Identified potential relationships and patterns.
 
-    ### 3. Feature Engineering
-    - *Categorical Encoding:*
-      - Applied ordinal encoding to convert categorical features into numerical values based on domain knowledge.
-    - *Creation of New Features:*
-      - *TotalSF:* Combined total square footage of the house, including basement and above-ground areas.
-      - *Qual_TotalSF:* Product of OverallQual and TotalSF to capture the combined effect of size and quality.
+        ### 2. Data Cleaning
+        - *Handling Missing Values:*
+          - *Numerical Features:* Filled missing values with zeros or the median of the feature.
+          - *Categorical Features:* Filled missing values with the mode or a default category.
+          - *Verification:* Confirmed that no missing values remained after imputation.
 
-    ### 4. Feature Transformation
-    - *Addressing Skewness:*
-      - Identified skewed features using skewness metrics.
-      - Applied log transformation or Box-Cox transformation to normalize distributions.
+        ### 3. Feature Engineering
+        - *Categorical Encoding:*
+          - Applied ordinal encoding to convert categorical features into numerical values based on domain knowledge.
+        - *Creation of New Features:*
+          - *TotalSF:* Combined total square footage of the house, including basement and above-ground areas.
+          - *Qual_TotalSF:* Product of OverallQual and TotalSF to capture the combined effect of size and quality.
 
-    ### 5. Feature Selection
-    - *Random Forest Feature Importances:*
-      - Trained a Random Forest model to assess feature importances.
-      - Selected top features contributing most to the model's predictive power.
+        ### 4. Feature Transformation
+        - *Addressing Skewness:*
+          - Identified skewed features using skewness metrics.
+          - Applied log transformation or Box-Cox transformation to normalize distributions.
 
-    ### 6. Data Scaling
-    - *Standardization:*
-      - Used StandardScaler to standardize features.
-      - Ensured that features have a mean of 0 and a standard deviation of 1 for optimal model performance.
+        ### 5. Feature Selection
+        - *Random Forest Feature Importances:*
+          - Trained a Random Forest model to assess feature importances.
+          - Selected top features contributing most to the model's predictive power.
 
-    ### 7. Model Training
-    - *Algorithms Used:*
-      - Linear Regression, Ridge Regression, Lasso Regression, ElasticNet, Random Forest, Gradient Boosting, XGBoost.
-    - *Hyperparameter Tuning:*
-      - Adjusted parameters using techniques like cross-validation to prevent overfitting and improve generalization.
+        ### 6. Data Scaling
+        - *Standardization:*
+          - Used StandardScaler to standardize features.
+          - Ensured that features have a mean of 0 and a standard deviation of 1 for optimal model performance.
 
-    ### 8. Model Evaluation
-    - *Performance Metrics:*
-      - *Mean Absolute Error (MAE):* Measures average magnitude of errors.
-      - *Root Mean Squared Error (RMSE):* Penalizes larger errors more than MAE.
-      - *R² Score:* Indicates the proportion of variance explained by the model.
-    - *Best Model Selection:*
-      - Selected the model with the lowest RMSE and highest R² Score.
+        ### 7. Model Training
+        - *Algorithms Used:*
+          - Linear Regression, Ridge Regression, Lasso Regression, ElasticNet, Random Forest, Gradient Boosting, XGBoost.
+        - *Hyperparameter Tuning:*
+          - Adjusted parameters using techniques like cross-validation to prevent overfitting and improve generalization.
+
+        ### 8. Model Evaluation
+        - *Performance Metrics:*
+          - *Mean Absolute Error (MAE):* Measures average magnitude of errors.
+          - *Root Mean Squared Error (RMSE):* Penalizes larger errors more than MAE.
+          - *R² Score:* Indicates the proportion of variance explained by the model.
+        - *Best Model Selection:*
+          - Selected the model with the lowest RMSE and highest R² Score.
 
     ### 9. Deployment
     - *Interactive Dashboard:*
