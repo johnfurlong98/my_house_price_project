@@ -19,13 +19,13 @@ st.set_page_config(
 
 # Load models and data
 def load_data():
-    data = pd.read_csv('/workspace/milestone-project-heritage-housing-issues/data/house_prices_records.csv')
-    inherited_houses = pd.read_csv('/workspace/milestone-project-heritage-housing-issues/data/inherited_houses.csv')
+    data = pd.read_csv('data/house_prices_records.csv')
+    inherited_houses = pd.read_csv('data/inherited_houses.csv')
     return data, inherited_houses
 
 def load_models():
     models = {}
-    models_dir = '/workspace/milestone-project-heritage-housing-issues/jupyter_notebooks/models'
+    models_dir = 'jupyter_notebooks/models'
     # Load all models
     model_files = {
         'Linear Regression': 'linear_regression_model.joblib',
