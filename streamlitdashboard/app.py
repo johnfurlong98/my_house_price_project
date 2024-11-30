@@ -7,13 +7,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import boxcox
 import pickle
+from yellowbrick.regressor import ResidualsPlot
 
 # ===========================
 # 1. Setup and Configuration
 # ===========================
-
-# Get the directory where the script is located
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Set up page configuration with a custom theme
 st.set_page_config(
@@ -30,8 +28,8 @@ def load_data():
     """
     Loads the house prices records and inherited houses data from CSV files.
     """
-    data_path = os.path.join(BASE_DIR, '..', 'data', 'house_prices_records.csv')
-    inherited_houses_path = os.path.join(BASE_DIR, '..', 'data', 'inherited_houses.csv')
+    data_path = os.path.join('data', 'house_prices_records.csv')
+    inherited_houses_path = os.path.join('data', 'inherited_houses.csv')
     
     # Check if data files exist
     if not os.path.exists(data_path):
@@ -50,7 +48,7 @@ def load_models():
     """
     Loads machine learning models and related components from joblib and pickle files.
     """
-    models_dir = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models')
+    models_dir = os.path.join('models')
     
     # Check if models directory exists
     if not os.path.exists(models_dir):
@@ -257,7 +255,7 @@ def preprocess_data(df):
                 lam = lam_dict.get(feat)
                 if lam is not None:
                     try:
-                        df_processed[feat] = boxcox(df_processed[feat], lam)
+                        df_processed[feat], _ = boxcox(df_processed[feat], lmbda=lam)
                     except ValueError:
                         df_processed[feat] = np.log1p(df_processed[feat])
                 else:
@@ -635,6 +633,9 @@ with tab3:
     # Preprocess and predict for inherited houses
     inherited_processed = preprocess_data(inherited_houses)
     inherited_scaled = scaler.transform(inherited_processed[selected_features])
+    
+    # Determine the best model based on Model Performance tab
+    # For simplicity, assume XGBoost is the best model
     best_model_name = 'XGBoost'  # Update this based on your model evaluation
 
     if best_model_name not in models:
@@ -643,7 +644,8 @@ with tab3:
         selected_model = models[best_model_name]
         try:
             predictions_log = selected_model.predict(inherited_scaled)
-            predictions_actual = np.expm1(predictions_log)
+            # If your target variable was log-transformed, you might need to reverse the transformation
+            predictions_actual = np.expm1(predictions_log)  # Assuming log1p was used
             predictions_actual[predictions_actual < 0] = 0  # Handle negative predictions
 
             # Add predictions to the processed DataFrame
@@ -735,7 +737,7 @@ with tab3:
             else:
                 selected_model = models[best_model_name]
                 user_pred_log = selected_model.predict(user_scaled)
-                user_pred_actual = np.expm1(user_pred_log)
+                user_pred_actual = np.expm1(user_pred_log)  # Assuming log1p was used
                 user_pred_actual[user_pred_actual < 0] = 0  # Handle negative predictions
                 st.success(f"The predicted sale price is **${user_pred_actual[0]:,.2f}**.")
         except Exception as e:
@@ -800,7 +802,7 @@ with tab4:
 with tab5:
     st.title("Model Performance")
     st.header("Performance Metrics")
-    results_df_path = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models', 'model_evaluation.csv')
+    results_df_path = os.path.join('models', 'model_evaluation.csv')
     
     if not os.path.exists(results_df_path):
         st.error(f"Model evaluation file not found: {results_df_path}")
@@ -909,16 +911,17 @@ with tab5:
     if best_model_name and best_model_name in models:
         try:
             selected_model = models[best_model_name]
-            train_test_data_path = os.path.join(BASE_DIR, '..', 'jupyter_notebooks', 'models', 'train_test_data.joblib')
+            train_test_data_path = os.path.join('models', 'train_test_data.joblib')
             if not os.path.exists(train_test_data_path):
                 st.error(f"Train-test data file not found: {train_test_data_path}")
             else:
                 X_train, X_test, y_train, y_test = joblib.load(train_test_data_path)
                 y_pred_log = selected_model.predict(X_test)
-                y_pred_actual = np.expm1(y_pred_log)
+                y_pred_actual = np.expm1(y_pred_log)  # Assuming log1p was used
                 y_pred_actual[y_pred_actual < 0] = 0  # Handle negative predictions
                 y_test_actual = np.expm1(y_test)
-
+                
+                # Plot Actual vs Predicted
                 plt.figure(figsize=(10, 6))
                 sns.scatterplot(x=y_test_actual, y=y_pred_actual, color='purple')
                 plt.xlabel('Actual Sale Price', fontsize=12)
