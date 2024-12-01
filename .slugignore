@@ -1,8 +1,22 @@
+# Exclude data and models directories
 data/
 models/
+
+# Exclude Python cache and compiled files
 __pycache__/
 *.pyc
+
+# Exclude version control and IDE-specific directories
 .git/
 .cache/
 .pytest_cache/
 .ipynb_checkpoints/
+.vscode/
+
+# Exclude Docker and other environment-specific files
+.gitpod.dockerfile
+
+# Exclude any other large or unnecessary files
+*.log
+*.tmp
+*.bak
