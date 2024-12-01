@@ -6,4 +6,3 @@ __pycache__/
 .cache/
 .pytest_cache/
 .ipynb_checkpoints/
-streamlitdashboard/data/house_prices_records.csv
