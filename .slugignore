@@ -1,22 +1,29 @@
-# Exclude data and models directories
+# Ignore raw and intermediate files
 data/
-models/
+jupyter_notebooks/models/
 
-# Exclude Python cache and compiled files
+# Ignore temporary and cache files
 __pycache__/
 *.pyc
-
-# Exclude version control and IDE-specific directories
-.git/
-.cache/
-.pytest_cache/
-.ipynb_checkpoints/
-.vscode/
-
-# Exclude Docker and other environment-specific files
-.gitpod.dockerfile
-
-# Exclude any other large or unnecessary files
-*.log
+*.pyo
+*.pyd
 *.tmp
+*.log
 *.bak
+*.swp
+
+# Ignore version control files
+.git/
+*.gitignore
+*.gitmodules
+
+# Ignore IDE and environment-specific files
+.vscode/
+*.env
+*.ipynb_checkpoints/
+*.idea/
+*.DS_Store
+
+# Retain compressed assets for extraction at runtime
+!models.tar.gz
+!data.tar.gz
