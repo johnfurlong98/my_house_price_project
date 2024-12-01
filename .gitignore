@@ -8,3 +8,78 @@ node_modules/
 .github/
 cloudinary_python.txt
 kaggle.json
+# Byte-compiled / optimized / DLL files
+_pycache_/
+*.py[cod]
+*$py.class
+
+# Virtual environment directory
+.venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Python specific cache
+*.egg
+*.egg-info/
+dist/
+build/
+*.eggs/
+
+# Data files (if generated or sensitive)
+*.csv
+*.pkl
+*.joblib
+*.h5
+*.db
+*.sqlite3
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor-specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# Testing
+.tox/
+.nox/
+*.test_cache/
+
+# Distribution / Package files
+.Python
+*.env
+
+# Pyenv
+.python-version
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.orig
+*.rej
+*.gz
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Streamlit-specific
+.streamlit/
